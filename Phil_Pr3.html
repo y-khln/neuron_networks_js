@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Заголовок</title>
+  </head>
+  <div style="display: flex;flex-direction: row;">
+    <div id="div" style="margin-right: 150px"></div>
+    <div id="div2">
+      <span>Пример:<br></span>
+      <input type="checkbox" id="0"/> <input type="checkbox" id="1"/> <input type="checkbox" id="2"/> <br>
+      <input type="checkbox" id="3"/> <input type="checkbox" id="4"/> <input type="checkbox" id="5"/> <br>
+      <input type="checkbox" id="6"/> <input type="checkbox" id="7"/> <input type="checkbox" id="8"/> <br>
+      <button onclick="displayResult()">Проверить</button>
+      <div id="div3"></div>
+    </div>
+  </div>
+  <body>
+  	<script type="text/javascript">
+
+var p = document.getElementById('div');
+
+let x = [
+[-1,-1,-1,-1,-1,-1,-1,-1,-1],
+[ 1, 1, 1,-1,-1,-1,-1,-1,-1],
+[-1,-1,-1, 1, 1, 1,-1,-1,-1],
+[-1,-1,-1,-1,-1,-1, 1, 1, 1],
+[ 1,-1,-1, 1,-1,-1, 1,-1,-1]
+];
+
+//вывод на экран обучающего множества при загрузке странице
+function examples(){
+  p.innerText = "Обучающее множество: \n";
+  x.forEach((example, index) =>
+    {
+      p.innerText+=index+1 + '\n';
+      let count = 0;
+      example.forEach((value, indexValue) =>
+        {
+          if (value == 1){
+            p.innerText +='⬛';
+            count+=1;
+          }
+          else{
+            p.innerText +='⬜';
+            count+=1;
+          }
+          if (count == 3){
+            count = 0;
+            p.innerText += "\n";
+          }
+        }
+      )
+      p.innerText += "\n";
+    }
+  )
+}
+
+function displayResult(){
+  var y = [-1,-1,-1,-1,-1,-1,-1,-1,-1];
+  for (let i = 0; i<y.length; i++)
+  {
+    var checkbox = document.getElementById(i);
+    if (checkbox.checked) y[i] = 1;
+    else y[i]= -1;
+  }
+  n = new Network(x);
+  var y1 = n.result(y);
+  var a = n.in(y1);
+  var p = document.getElementById("div3");
+  p.innerText="";
+  let count = 0;
+  y1.forEach((value, indexValue) =>
+    {
+      if (value == 1)
+      {
+        p.innerText +='⬛';
+        count+=1;
+      }
+      else
+      {
+        p.innerText +='⬜';
+        count+=1;
+      }
+      if (count == 3)
+      {
+        count = 0;
+        p.innerText += "\n";
+      }
+    }
+  )
+  p.innerText += a + "\n";
+  for (let i = 0; i<y.length; i++)
+  {
+    var checkbox = document.getElementById(i);
+    checkbox.checked = false;
+  }
+}
+
+
+class Network
+{
+
+  constructor(x)
+  {
+    this.x=x          
+
+    this.w = this.x[0].map( line => this.x[0].map( value => 0 ));
+
+    this.x.forEach( (example,index) => {
+        example.forEach((value, indexValue) => {
+            for(let i = 0; i < example.length; i++)
+            {
+              this.w[indexValue][i] += value*example[i];
+            }
+          }
+        )
+      }
+    )
+    this.w = this.w.map( line => line.map( value => 1 / this.w.length * value) )
+    for(let i =0; i < this.w.length; i++)
+    {
+      this.w[i][i]=0;
+    }
+  }
+
+//проверка - или +
+  sign(x)
+  {
+    return (x<0) ? -1 : 1;
+  }
+//проверка на совпадение с элементом из обучающего множества
+  in(y)
+  {
+    let result = -1;//черный
+    this.x.forEach( (example,index) => {
+        let coincidence = 0;
+        example.forEach( (value,indexValue) => {
+            coincidence += (value == y[indexValue]) ? 1 : 0;
+          }
+        )
+        if(coincidence == y.length)
+        {
+          result = index+1;
+        }
+        else
+        {
+          coincidence = 0;
+        }
+      } 
+    )
+    return result;
+  }
+
+  result(y)
+  {
+    let i =0;
+    while(this.in(y)<0 && i<5)
+    {
+      y = y.map( (value, index) => {
+          let y1=0;
+          for(let i =0; i < y.length; i++)
+          {
+            y1 += y[i] * this.w[index][i];
+          }
+          return this.sign(y1);
+        } 
+      )
+      i++;
+    }
+    return y;
+  }
+
+}
+
+window.onload = () =>
+{
+  n = new Network(x);
+  examples();
+}
+  	</script>
+  </body>
+</html>
